@@ -2,8 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const AdmZip = require('adm-zip');
 const JSZip = require('jszip');
-const { PDFDocument } = require('pdf-lib');
-const { createCanvas, loadImage } = require('canvas');
+const { PDFDocument, rgb } = require('pdf-lib');
 const path = require('path');
 const fs = require('fs');
 const app = express();
@@ -23,57 +22,51 @@ app.get('/', (req, res) => {
 });
 
 const processPdf = async (pdfBuffer, sdate, issued) => {
-    let stampImageBuffer = null;
-
-    try {
-        // Load the stamp image
-        const stampImage = await loadImage(path.join(__dirname, 'public', 'Hero Reviewed Stamp.png'));
-
-        // Create a canvas and draw the stamp image
-        const canvas = createCanvas(stampImage.width, stampImage.height);
-        const ctx = canvas.getContext('2d');
-        canvas.width = stampImage.naturalWidth;
-        canvas.height = stampImage.naturalHeight;
-
-        ctx.drawImage(stampImage, 0, 0, stampImage.naturalWidth, stampImage.naturalHeight);
-
-        // Add text to the stamp
-        ctx.font = "60px Arial";
-        ctx.fillStyle = "#0000FF";
-
-        ctx.fillText(`${sdate}`, 300, 320);
-        ctx.fillText(`${issued}`, 125, 400);
-
-        // Convert the canvas to a PNG buffer
-        stampImageBuffer = canvas.toBuffer('image/png');
-    } catch (error) {
-        throw new Error('Failed to load or process stamp image');
-    }
-
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const pages = pdfDoc.getPages();
+
+    // Load the stamp image and convert it to base64
+    const stampImagePath = path.join(__dirname, 'public', 'Hero Reviewed Stamp.png');
+    const stampImageBuffer = fs.readFileSync(stampImagePath);
+    const stampImageBase64 = stampImageBuffer.toString('base64');
+    const stampImageBytes = Uint8Array.from(Buffer.from(stampImageBase64, 'base64'));
+
+    // Embed the PNG stamp image into the PDF
+    const stampPdfImage = await pdfDoc.embedPng(stampImageBytes);
 
     for (const page of pages) {
         const { width, height } = page.getSize();
 
-        // Embed the PNG stamp image into the PDF
-        const stampPdfImage = await pdfDoc.embedPng(stampImageBuffer);
-
         // Determine the stamp dimensions and position
         const stampWidth = 250;
-        const stampHeight = 200;
-        const paddingFromBottom = 14 * 28.3464567; // 5 cm in points (1 cm = 28.3464567 points)
+        const stampHeight = 190;
+        const paddingFromBottom = 15 * 28.3464567; // 5 cm in points (1 cm = 28.3464567 points)
         const paddingFromLeft = 0; // on the left edge
-    
 
         const x = paddingFromLeft;
         const y = height - paddingFromBottom - stampHeight;
 
+        // Draw the image
         page.drawImage(stampPdfImage, {
             x: x,
             y: y,
             width: stampWidth,
             height: stampHeight,
+        });
+
+        // Add text to the stamp
+        page.drawText(`${sdate}`, {
+            x: x + 80,
+            y: y + stampHeight - 95,
+            size: 14,
+            color: rgb(0, 0, 1) // blue color
+        });
+
+        page.drawText(`${issued}`, {
+            x: x + 50,
+            y: y + stampHeight - 112,
+            size: 14,
+            color: rgb(0, 0, 1) // blue color
         });
     }
 
