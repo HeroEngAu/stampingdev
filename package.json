@@ -1,0 +1,16 @@
+{
+  "name": "stamping",
+  "version": "1.0.0",
+  "description": "Stamping Application Bulk",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ML",
+  "license": "ISC",
+  "dependencies": {
+    "mobiscroll": "^3.0.0-beta6",
+    "pdf-poppler": "^0.2.1",
+    "sharp": "^0.33.5"
+  }
+}
