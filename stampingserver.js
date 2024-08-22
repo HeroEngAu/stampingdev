@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const upload = multer({ dest: 'uploads/' });
 
-app.get('/', (req, res) => {
+app.get('/stamping', (req, res) => {
     res.render('Stamping');
 });
 
@@ -26,7 +26,7 @@ const processPdf = async (pdfBuffer, sdate, issued) => {
     const pages = pdfDoc.getPages();
 
     // Load the stamp image and convert it to base64
-    const stampImagePath = path.join(__dirname, 'public', 'Hero Reviewed Stamp.png');
+    const stampImagePath = path.join(__dirname, 'public', 'herostamp.png');
     const stampImageBuffer = fs.readFileSync(stampImagePath);
     const stampImageBase64 = stampImageBuffer.toString('base64');
     const stampImageBytes = Uint8Array.from(Buffer.from(stampImageBase64, 'base64'));

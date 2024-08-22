@@ -9,6 +9,7 @@
   "author": "ML",
   "license": "ISC",
   "dependencies": {
+    "canvas": "^2.11.2",
     "mobiscroll": "^3.0.0-beta6",
     "pdf-poppler": "^0.2.1",
     "sharp": "^0.33.5"
